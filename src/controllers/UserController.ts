@@ -16,10 +16,8 @@ export function getUser(req: any, res: any) {
     .catch((e) => {
         console.log(e);
         res.json({ "success": false, "message": "internal server error" });
-    })
-    .then(() => {
         db.end();
-    });
+    })
 }
 
 export function createUser(req: any, res: any) {
@@ -38,8 +36,8 @@ export function createUser(req: any, res: any) {
         .catch((e) => {
             console.log(e);
             res.json({ "success": false, "message": "internal server error" });
+            db.end();
         })
-        .then(() => { db.end(); });
     }
     else {
         res.json({ "success": false, "message": "user is not valid" });
