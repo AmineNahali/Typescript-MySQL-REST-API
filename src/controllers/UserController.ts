@@ -1,5 +1,6 @@
 import { db } from "../../db";
 import { validateUser } from "../models/UserModel";
+import bcrypt from "bcrypt"
 
 
 export function getUser(req: any, res: any) {
@@ -28,7 +29,11 @@ export function createUser(req: any, res: any) {
         .promise()
         .query(
             queryString,
-            [req.body.username, req.body.email, req.body.password]
+            [
+                req.body.username,
+                req.body.email,
+                bcrypt.hashSync(req.body.password, bcrypt.genSaltSync()) // const verified = bcrypt.compareSync('Pa$$w0rd', passwordHash);
+            ]
         )
         .then(([rows, fields]) => {
             res.json({ "success": true, "message": "registered successfully" });
