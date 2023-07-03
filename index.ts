@@ -1,9 +1,11 @@
 import express from "express";
 import UserRouter from "./src/routes/UserRoutes";
+import * as dotenv from "dotenv";
+dotenv.config();
 
 //Setup Express
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
