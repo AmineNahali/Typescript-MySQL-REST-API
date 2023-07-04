@@ -1,8 +1,7 @@
 import { db } from "../../db";
-import { validate_UserLoginForm, validate_UserRegisterForm, isEmail} from "../models/UserModel";
+import { validate_UserLoginForm, validate_UserRegisterForm, isEmail } from "../models/UserModel";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
-
 
 export function getUser(req: Request, res: Response) {
     const queryString = "SELECT USERNAME, EMAIL FROM DATABASE1.USERS WHERE USERNAME=?";
@@ -71,6 +70,7 @@ export function loginUser(req: Request, res: Response) {
                     if (bcrypt.compareSync(req.body.password, (rows as Array<any>)[0].PASSWORD)) {
                         res.json({ "success": true, "message": "password is correct !", "serverTime": fastTimeStamp() });
                         ///////// more work
+                        //create tokens
                     }
                     else {
                         res.json({ "success": false, "message": "password is wrong.", "serverTime": fastTimeStamp() });
@@ -94,8 +94,9 @@ export function loginUser(req: Request, res: Response) {
 export function fastTimeStamp() {
     /*
         this is a fast time stamp function that represents date as a number which allows for simpler
-        date comparison and
-        TODO: turn this into a class and create methods to get individual parts of date : year month etc..
+        date comparison and sorting by date maybe needed for future features but for now it signals
+        server time current to every json response.
+        TODO: turn this into a class and create methods to get individual parts of stamp each seperately : year month etc..
     */
     const currentDate = new Date();
 
@@ -108,4 +109,8 @@ export function fastTimeStamp() {
         currentDate.getSeconds() * 1000 +            //202301311259|59 plus 
         currentDate.getMilliseconds()                    //milliseconds get added directly to the sum
     )
+}
+
+function signJWT(){
+
 }
