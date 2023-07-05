@@ -2,6 +2,8 @@ import { db } from "../../db";
 import { validate_UserLoginForm, validate_UserRegisterForm, isEmail } from "../models/UserModel";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
+const jwt = require('jsonwebtoken');
+
 
 export function getUser(req: Request, res: Response) {
     const queryString = "SELECT USERNAME, EMAIL FROM DATABASE1.USERS WHERE USERNAME=?";
@@ -52,10 +54,8 @@ export function loginUser(req: Request, res: Response) {
     if (validate_UserLoginForm(req.body)) {
         var queryString = "";
         queryString = "SELECT USERNAME, EMAIL, PASSWORD FROM DATABASE1.USERS WHERE USERNAME=?";
-        console.log("Username !!!!!!");
         if (isEmail(req.body.username)) {
             queryString = "SELECT USERNAME, EMAIL, PASSWORD FROM DATABASE1.USERS WHERE EMAIL=?";
-            console.log("actually it's an Email !!!!!!");
         }
         db
             .promise()
@@ -68,9 +68,15 @@ export function loginUser(req: Request, res: Response) {
                 if (count == 1) {
                     //Verify the password
                     if (bcrypt.compareSync(req.body.password, (rows as Array<any>)[0].PASSWORD)) {
-                        res.json({ "success": true, "message": "password is correct !", "serverTime": fastTimeStamp() });
-                        ///////// more work
+                        //res.json({ "success": true, "message": "password is correct !", "serverTime": fastTimeStamp() });
                         //create tokens
+                        const user = {
+                            "email": (rows as Array<any>)[0].EMAIL,
+                            "name": (rows as Array<any>)[0].USERNAME
+                        }
+                        const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
+                        const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TTL });
+                        res.json({ "success": true, "accessToken":accessToken, "refreshToken":refreshToken, "serverTime": fastTimeStamp() });
                     }
                     else {
                         res.json({ "success": false, "message": "password is wrong.", "serverTime": fastTimeStamp() });
@@ -111,6 +117,6 @@ export function fastTimeStamp() {
     )
 }
 
-function signJWT(){
+function signJWT() {
 
 }
