@@ -3,6 +3,7 @@ import { validate_UserLoginForm, validate_UserRegisterForm, isEmail } from "../m
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 const jwt = require('jsonwebtoken');
+var tokenList:any = []
 
 
 export function getUser(req: Request, res: Response) {
@@ -33,7 +34,7 @@ export function registerUser(req: Request, res: Response) {
                 [
                     req.body.username,
                     req.body.email,
-                    bcrypt.hashSync(req.body.password, bcrypt.genSaltSync()) // const verified = bcrypt.compareSync('Pa$$w0rd', passwordHash);
+                    bcrypt.hashSync(req.body.password, bcrypt.genSaltSync())
                 ]
             )
             .then(([rows, fields]) => {
@@ -76,7 +77,11 @@ export function loginUser(req: Request, res: Response) {
                         }
                         const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
                         const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TTL });
-                        res.json({ "success": true, "accessToken":accessToken, "refreshToken":refreshToken, "serverTime": fastTimeStamp() });
+                        tokenList[refreshToken] = {
+                            "accessToken": accessToken,
+                            "refreshToken": refreshToken,
+                        }
+                        res.json({ "success": true, "accessToken": accessToken, "refreshToken": refreshToken, "serverTime": fastTimeStamp() });
                     }
                     else {
                         res.json({ "success": false, "message": "password is wrong.", "serverTime": fastTimeStamp() });
@@ -95,6 +100,26 @@ export function loginUser(req: Request, res: Response) {
         res.json({ "success": false, "message": "Invalid credentials.", "serverTime": fastTimeStamp() });
     }
 
+}
+
+export function refresh(req: Request, res: Response) {
+    const postData = req.body
+    // if refresh token exists
+    if((postData.refreshToken)) {
+        const user = {
+            "email": postData.email,
+            "name": postData.name
+        };
+        const newtoken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
+        const response = {
+            "accessToken": newtoken,
+        }
+        // update the token in the list
+        tokenList[postData.refreshToken].token = newtoken;
+        res.status(200).json(response);
+    } else {
+        res.status(404).send('Invalid request')
+    }
 }
 
 export function fastTimeStamp() {
@@ -117,6 +142,6 @@ export function fastTimeStamp() {
     )
 }
 
-function signJWT() {
-
+function saveToken(t:string){
+    
 }
