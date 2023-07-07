@@ -3,8 +3,12 @@ import { validate_UserLoginForm, validate_UserRegisterForm, isEmail } from "../m
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 const jwt = require('jsonwebtoken');
-var tokenList:any = []
 
+interface HashTable<T> {
+    [key: string]: T;
+}
+
+var tokenList: HashTable<string> = {}
 
 export function getUser(req: Request, res: Response) {
     const queryString = "SELECT USERNAME, EMAIL FROM DATABASE1.USERS WHERE USERNAME=?";
@@ -44,7 +48,8 @@ export function registerUser(req: Request, res: Response) {
                 console.log(e);
                 res.json({ "success": false, "message": "internal server error please try again later.", "serverTime": fastTimeStamp() });
                 db.end();
-            });
+            })
+            ;
     }
     else {
         res.json({ "success": false, "message": "user is not valid", "serverTime": fastTimeStamp() });
@@ -53,8 +58,7 @@ export function registerUser(req: Request, res: Response) {
 
 export function loginUser(req: Request, res: Response) {
     if (validate_UserLoginForm(req.body)) {
-        var queryString = "";
-        queryString = "SELECT USERNAME, EMAIL, PASSWORD FROM DATABASE1.USERS WHERE USERNAME=?";
+        var queryString = "SELECT USERNAME, EMAIL, PASSWORD FROM DATABASE1.USERS WHERE USERNAME=?";
         if (isEmail(req.body.username)) {
             queryString = "SELECT USERNAME, EMAIL, PASSWORD FROM DATABASE1.USERS WHERE EMAIL=?";
         }
@@ -77,10 +81,8 @@ export function loginUser(req: Request, res: Response) {
                         }
                         const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
                         const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TTL });
-                        tokenList[refreshToken] = {
-                            "accessToken": accessToken,
-                            "refreshToken": refreshToken,
-                        }
+                        tokenList[refreshToken] = accessToken;
+
                         res.json({ "success": true, "accessToken": accessToken, "refreshToken": refreshToken, "serverTime": fastTimeStamp() });
                     }
                     else {
@@ -99,26 +101,24 @@ export function loginUser(req: Request, res: Response) {
     } else {
         res.json({ "success": false, "message": "Invalid credentials.", "serverTime": fastTimeStamp() });
     }
-
 }
 
 export function refresh(req: Request, res: Response) {
     const postData = req.body
     // if refresh token exists
-    if((postData.refreshToken)) {
+    if ((postData.refreshToken) && tokenList[postData.refreshToken]) {
         const user = {
             "email": postData.email,
             "name": postData.name
         };
         const newtoken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
-        const response = {
-            "accessToken": newtoken,
-        }
         // update the token in the list
-        tokenList[postData.refreshToken].token = newtoken;
-        res.status(200).json(response);
+        tokenList[postData.refreshToken] = newtoken;
+        res.status(200).json({
+            "accessToken": newtoken, "serverTime": fastTimeStamp()
+        });
     } else {
-        res.status(404).send('Invalid request')
+        res.status(404).send('Invalid request');
     }
 }
 
@@ -140,8 +140,4 @@ export function fastTimeStamp() {
         currentDate.getSeconds() * 1000 +            //202301311259|59 plus 
         currentDate.getMilliseconds()                    //milliseconds get added directly to the sum
     )
-}
-
-function saveToken(t:string){
-    
 }
