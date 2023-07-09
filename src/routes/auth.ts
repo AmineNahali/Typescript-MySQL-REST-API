@@ -1,4 +1,5 @@
-import {fastTimeStamp} from '../controllers/UserController'
+import { fastTimeStamp } from '../controllers/UserController';
+
 const jwt = require('jsonwebtoken')
 
 module.exports = (req: any, res: any, next: any) => {
@@ -8,7 +9,7 @@ module.exports = (req: any, res: any, next: any) => {
     // verifies secret and checks exp
     jwt.verify(token, process.env.JWT_ACCESS_SECRET, function (err: any, decoded: any) {
       if (err) {
-        return res.status(401).json({ "error": true, "message": 'Unauthorized access.', "serverTime": fastTimeStamp() });
+        return res.status(401).json({ "success": false, "message": 'Unauthorized access.', "serverTime": fastTimeStamp() });
       }
       req.decoded = decoded;
       next();
@@ -17,8 +18,9 @@ module.exports = (req: any, res: any, next: any) => {
     // if there is no token
     // return an error
     return res.status(403).send({
-      "error": true,
-      "message": 'No token provided.'
+      "success": false,
+      "message": 'No token provided.',
+      "serverTime": fastTimeStamp()
     });
   }
 }

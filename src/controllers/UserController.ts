@@ -1,32 +1,15 @@
-import { db } from "../../db";
+import { db, redisClient } from "../../db";
 import { validate_UserLoginForm, validate_UserRegisterForm, isEmail } from "../models/UserModel";
-import bcrypt from "bcrypt";
 import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+
 const jwt = require('jsonwebtoken');
 
-interface HashTable<T> {
-    [key: string]: T;
-}
-
-var tokenList: HashTable<string> = {}
-
-export function getUser(req: Request, res: Response) {
-    const queryString = "SELECT USERNAME, EMAIL FROM DATABASE1.USERS WHERE USERNAME=?";
-    db
-        .promise()
-        .query(
-            queryString,
-            req.params.username
-        )
-        .then(([rows, fields]) => {
-            res.json({ "success": true, "message": rows, "serverTime": fastTimeStamp(), "nb": (rows as Array<any>).length });
-        })
-        .catch((e) => {
-            console.log(e);
-            res.json({ "success": false, "message": "internal server error please try again later.", "serverTime": fastTimeStamp() });
-            db.end();
-        });
-}
+//interface HashTable<T> {
+//    [key: string]: T;
+//}
+//
+//var tokenList: HashTable<string> = {}
 
 export function registerUser(req: Request, res: Response) {
     if (validate_UserRegisterForm(req.body)) {
@@ -73,7 +56,6 @@ export function loginUser(req: Request, res: Response) {
                 if (count == 1) {
                     //Verify the password
                     if (bcrypt.compareSync(req.body.password, (rows as Array<any>)[0].PASSWORD)) {
-                        //res.json({ "success": true, "message": "password is correct !", "serverTime": fastTimeStamp() });
                         //create tokens
                         const user = {
                             "email": (rows as Array<any>)[0].EMAIL,
@@ -81,9 +63,12 @@ export function loginUser(req: Request, res: Response) {
                         }
                         const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
                         const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TTL });
-                        tokenList[refreshToken] = accessToken;
-
-                        res.json({ "success": true, "accessToken": accessToken, "refreshToken": refreshToken, "serverTime": fastTimeStamp() });
+                        //tokenList[refreshToken] = accessToken;
+                        redisClient.set(refreshToken, accessToken)
+                            .then(() => {
+                                res.json({ "success": true, "accessToken": accessToken, "refreshToken": refreshToken, "serverTime": fastTimeStamp() });
+                            })
+                            .catch(e => { console.log("redis panic !!!" + e); redisClient.disconnect() });
                     }
                     else {
                         res.json({ "success": false, "message": "password is wrong.", "serverTime": fastTimeStamp() });
@@ -105,21 +90,32 @@ export function loginUser(req: Request, res: Response) {
 
 export function refresh(req: Request, res: Response) {
     const postData = req.body
-    // if refresh token exists
-    if ((postData.refreshToken) && tokenList[postData.refreshToken]) {
-        const user = {
-            "email": postData.email,
-            "name": postData.name
-        };
-        const newtoken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
-        // update the token in the list
-        tokenList[postData.refreshToken] = newtoken;
-        res.status(200).json({
-            "accessToken": newtoken, "serverTime": fastTimeStamp()
-        });
-    } else {
-        res.status(404).send('Invalid request');
-    }
+    redisClient.get(postData.refreshToken)
+        .then((value) => {
+            // if refresh token exists
+            if ((postData.refreshToken) && value) {
+                const user = {
+                    "email": postData.email,
+                    "name": postData.name
+                };
+                //create new token
+                const newtoken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
+
+                // update the token in the list
+                redisClient.set(postData.refreshToken, newtoken)
+                    .then(() => {
+                        res.status(200).json({
+                            "accessToken": newtoken, "serverTime": fastTimeStamp()
+                        });
+                    })
+                    .catch(e => { console.log("redis panic !!!" + e); redisClient.disconnect() });
+
+            } else {
+                res.status(404).send('Invalid request');
+            }
+        })
+        .catch(e => { console.log("redis panic !!!" + e); redisClient.disconnect() });
+
 }
 
 export function fastTimeStamp() {

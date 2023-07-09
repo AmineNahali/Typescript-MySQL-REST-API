@@ -1,8 +1,10 @@
 import mysql from "mysql2";
 import * as dotenv from "dotenv";
+import { createClient } from 'redis';
 dotenv.config();
 
-console.log('Connecting to database...');
+
+console.log('Connecting to Mysql database...');
 export const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -10,3 +12,18 @@ export const db = mysql.createConnection({
   database: process.env.DB_NAME
 });
 console.log('Successfully connected to database !');
+
+
+
+//console.log('connecting to Redis...');
+//export const redisClient = createClient({
+//  url: 'redis://localhost:6379'
+//});
+
+export const redisClient = createClient();
+
+redisClient.on('error', err => console.log('Redis Client Error', err));
+
+redisClient.connect().then(()=>{
+  console.log('Successfully connected to Redis');
+});
