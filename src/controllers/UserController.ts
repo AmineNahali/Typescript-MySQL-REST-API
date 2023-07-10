@@ -5,12 +5,6 @@ import bcrypt from "bcrypt";
 
 const jwt = require('jsonwebtoken');
 
-//interface HashTable<T> {
-//    [key: string]: T;
-//}
-//
-//var tokenList: HashTable<string> = {}
-
 export function registerUser(req: Request, res: Response) {
     if (validate_UserRegisterForm(req.body)) {
         const queryString = "INSERT INTO DATABASE1.USERS (USERNAME, EMAIL, PASSWORD) VALUES (?, ?, ?)";
