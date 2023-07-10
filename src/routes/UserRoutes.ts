@@ -1,14 +1,16 @@
 import { Router } from "express";
 import { registerUser, loginUser, refresh } from "../controllers/UserController";
+import { auth } from "./auth";
 
 const UserRouter = Router();
 
-UserRouter.post('/register', registerUser);
-UserRouter.post('/login', loginUser);
-UserRouter.post('/token', refresh);
+UserRouter
+.post('/register', registerUser)
+.post('/login', loginUser)
+.post('/aquireToken', refresh)
 
-UserRouter.use(require('./auth'))
-.get('/',(req, res)=>{
+UserRouter
+.get('/',auth,(req, res)=>{
     res.send('I am secure :*');
 });
 

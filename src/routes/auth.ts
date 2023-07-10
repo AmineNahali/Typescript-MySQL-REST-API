@@ -1,8 +1,8 @@
 import { fastTimeStamp } from '../controllers/UserController';
 
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
-module.exports = (req: any, res: any, next: any) => {
+export const auth = (req: any, res: any, next: any) => {
   const token = req.body.token || req.query.token || req.headers['x-access-token'];
   // decode token
   if (token) {
