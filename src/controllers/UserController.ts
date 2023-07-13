@@ -26,7 +26,6 @@ export function registerUser(req: Request, res: Response) {
                 res.json({ "success": false, "message": "internal server error please try again later.", "serverTime": fastTimeStamp() });
                 db.end();
             })
-            ;
     }
     else {
         res.json({ "success": false, "message": "user is not valid", "serverTime": fastTimeStamp() });

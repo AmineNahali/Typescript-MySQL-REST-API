@@ -9,7 +9,6 @@ UserRouter
 .post('/login', loginUser)
 .post('/aquireToken', refresh)
 
-UserRouter
 .get('/',auth,(req, res)=>{
     res.send('I am secure :*');
 });
