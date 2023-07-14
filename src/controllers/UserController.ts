@@ -56,7 +56,7 @@ export function loginUser(req: Request, res: Response) {
                         }
                         const accessToken = jwt.sign(user, process.env.JWT_ACCESS_SECRET, { expiresIn: process.env.JWT_ACCESS_TTL });
                         const refreshToken = jwt.sign(user, process.env.JWT_REFRESH_SECRET, { expiresIn: process.env.JWT_REFRESH_TTL });
-                        //tokenList[refreshToken] = accessToken;
+                        //SAVE THE TOKENS IN REDIS
                         redisClient.set(refreshToken, accessToken)
                             .then(() => {
                                 res.json({ "success": true, "accessToken": accessToken, "refreshToken": refreshToken, "serverTime": fastTimeStamp() });
