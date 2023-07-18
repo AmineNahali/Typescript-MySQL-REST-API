@@ -2,16 +2,16 @@ import { z } from "zod";
 
 //SCHEMAS
 const UserRegisterSchema = z.object({
-    username: z.string().min(3),
-    email: z.string().email().min(5),
-    password: z.string().min(5),
+    username: z.string().min(5).max(50),
+    email: z.string().email().min(5).max(64),
+    password: z.string().min(8).max(64),
     regID: z.string().min(10).max(10), // obtained with text captcha verification
     regKEY: z.string().min(10).max(10) // obtained with text captcha verification
 });
 
 const UserLoginSchema = z.object({
     username: z.string().min(3) || z.string().email().min(5),
-    password: z.string().min(5)
+    password: z.string().min(8)
 });
 
 //INFERRED TYPES (IF NEEDED)
