@@ -4,7 +4,9 @@ import { z } from "zod";
 const UserRegisterSchema = z.object({
     username: z.string().min(3),
     email: z.string().email().min(5),
-    password: z.string().min(5)
+    password: z.string().min(5),
+    regID: z.string().min(10).max(10), // obtained with text captcha verification
+    regKEY: z.string().min(10).max(10) // obtained with text captcha verification
 });
 
 const UserLoginSchema = z.object({

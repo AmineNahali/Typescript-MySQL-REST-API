@@ -7,24 +7,37 @@ const jwt = require('jsonwebtoken');
 
 export function registerUser(req: Request, res: Response) {
     if (validate_UserRegisterForm(req.body)) {
-        const queryString = "INSERT INTO DATABASE1.USERS (USERNAME, EMAIL, PASSWORD) VALUES (?, ?, ?)";
-        db
-            .promise()
-            .query(
-                queryString,
-                [
-                    req.body.username,
-                    req.body.email,
-                    bcrypt.hashSync(req.body.password, bcrypt.genSaltSync())
-                ]
-            )
-            .then(([rows, fields]) => {
-                res.json({ "success": true, "message": "registered successfully", "serverTime": fastTimeStamp() });
-            })
-            .catch((e) => {
-                console.log(e);
-                res.json({ "success": false, "message": "internal server error please try again later.", "serverTime": fastTimeStamp() });
-                db.end();
+
+        redisClient.get("regKey:" + req.body.regID)
+            .then((data) => {
+                if (data) {
+                    if (req.body.regKEY == data) { //Verified registration key successfully, now user can register
+                        const queryString = "INSERT INTO DATABASE1.USERS (USERNAME, EMAIL, PASSWORD) VALUES (?, ?, ?)";
+                        db
+                            .promise()
+                            .query(
+                                queryString,
+                                [
+                                    req.body.username,
+                                    req.body.email,
+                                    bcrypt.hashSync(req.body.password, bcrypt.genSaltSync())
+                                ]
+                            )
+                            .then(([rows, fields]) => {
+                                res.json({ "success": true, "message": "registered successfully", "serverTime": fastTimeStamp() });
+                            })
+                            .catch((e) => {
+                                console.log(e);
+                                res.json({ "success": false, "message": "internal server error please try again later.", "serverTime": fastTimeStamp() });
+                                db.end();
+                            })
+                    }
+                    else {
+                        res.json({ "success": false, "message": "wrong registartion key.", "serverTime": fastTimeStamp() });
+                    }
+                } else {
+                    res.json({ "success": false, "message": "the registration id no longer exists", "serverTime": fastTimeStamp() });
+                }
             })
     }
     else {
@@ -61,7 +74,7 @@ export function loginUser(req: Request, res: Response) {
                             .then(() => {
                                 res.json({ "success": true, "accessToken": accessToken, "refreshToken": refreshToken, "serverTime": fastTimeStamp() });
                             })
-                            .catch(e => { console.log("redis panic !!!" + e); redisClient.disconnect() });
+                            .catch(e => { console.log("redis panic !!! Cannot save login tokens" + e); redisClient.disconnect() });
                     }
                     else {
                         res.json({ "success": false, "message": "password is wrong.", "serverTime": fastTimeStamp() });
@@ -101,13 +114,13 @@ export function refresh(req: Request, res: Response) {
                             "accessToken": newtoken, "serverTime": fastTimeStamp()
                         });
                     })
-                    .catch(e => { console.log("redis panic !!!" + e); redisClient.disconnect() });
+                    .catch(e => { console.log("redis panic !!! Cannot save new token" + e); redisClient.disconnect() });
 
             } else {
                 res.status(404).send('Invalid request');
             }
         })
-        .catch(e => { console.log("redis panic !!!" + e); redisClient.disconnect() });
+        .catch(e => { console.log("redis panic !!! Cannot get refresh token" + e); redisClient.disconnect() });
 
 }
 

@@ -13,17 +13,10 @@ export const db = mysql.createConnection({
 });
 console.log('Successfully connected to database !');
 
-
-
-//console.log('connecting to Redis...');
-//export const redisClient = createClient({
-//  url: 'redis://localhost:6379'
-//});
-
-export const redisClient = createClient();
+export const redisClient = createClient({ url: 'redis://localhost:6379' });
 
 redisClient.on('error', err => console.log('Redis Client Error', err));
 
-redisClient.connect().then(()=>{
+redisClient.connect().then(() => {
   console.log('Successfully connected to Redis');
 });
