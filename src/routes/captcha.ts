@@ -6,7 +6,7 @@ import { fastTimeStamp } from "../controllers/UserController"
 const captchaRouter = Router();
 
 captchaRouter
-    .get("/image/:id", (req, res) => {
+    .post("/image/:id", (req, res) => {
         // Create new Captcha
         var newCaptcha = captcha();
 

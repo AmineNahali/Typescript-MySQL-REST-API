@@ -3,7 +3,6 @@ import * as dotenv from "dotenv";
 import { createClient } from 'redis';
 dotenv.config();
 
-
 console.log('Connecting to Mysql database...');
 export const db = mysql.createConnection({
   host: process.env.DB_HOST,
