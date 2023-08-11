@@ -1,12 +1,13 @@
 var captcha = require("nodejs-captcha");
 import { Router } from "express";
 import { redisClient } from "../../db";
-import { fastTimeStamp } from "../controllers/UserController"
+import { fastTimeStamp } from "../controllers/UserController";
+import { Request, Response } from "express";
 
 const captchaRouter = Router();
 
 captchaRouter
-    .post("/image/:id", (req, res) => {
+    .post("/image/:id", (req:Request, res:Response) => {
         // Create new Captcha
         var newCaptcha = captcha();
 
@@ -24,7 +25,7 @@ captchaRouter
             })
             .catch(e => { console.log("redis panic !!! Cannot save captcha image"); redisClient.disconnect(); });
     })
-    .post("/imageVerify", (req, res) => {
+    .post("/imageVerify", (req:Request, res:Response) => {
         redisClient.get("captchaid:" + req.body.id)
             .then((data) => {
                 if (data) { //captcha answer is provided by the user
