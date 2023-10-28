@@ -139,7 +139,7 @@ export function fastTimeStamp() {
         currentDate.getDate() * 1000000000 +      //202301|31 plus 9 zeros
         currentDate.getHours() * 10000000 +        //20230131|12 plus 7 zeros
         currentDate.getMinutes() * 100000 +          //2023013112|59 plus 5 zeros
-        currentDate.getSeconds() * 1000 +            //202301311259|59 plus 
+        currentDate.getSeconds() * 1000 +            //202301311259|59 plus 3 zeros
         currentDate.getMilliseconds()                    //milliseconds get added directly to the sum
     )
 }
