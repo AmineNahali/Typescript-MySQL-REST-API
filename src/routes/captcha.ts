@@ -52,10 +52,8 @@ export default captchaRouter;
 export function randomString() { // provides a random string composed of 10 chars.
     let result = '';
     const characters = 'AIF6NOpqrstui7jklmBGXHnUo34v8wxyz012PQRS9TVWZabcdJKLMCYDEefgh5';
-    let counter = 0;
-    while (counter < 10) {
+    while (result.length < 10) {
         result += characters.charAt(Math.floor(Math.random() * characters.length));
-        counter += 1;
     }
     return result;
 }
