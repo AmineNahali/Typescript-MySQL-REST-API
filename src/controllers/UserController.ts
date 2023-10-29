@@ -134,12 +134,12 @@ export function fastTimeStamp() {
     const currentDate = new Date();
 
     return (
-        currentDate.getFullYear() * 10000000000000 +  //2023 plus 13 zeros
-        (currentDate.getMonth() + 1) * 100000000000 +    //2023|01 plus 11 zeros (remember that January is 0, not 1)
-        currentDate.getDate() * 1000000000 +      //202301|31 plus 9 zeros
-        currentDate.getHours() * 10000000 +        //20230131|12 plus 7 zeros
-        currentDate.getMinutes() * 100000 +          //2023013112|59 plus 5 zeros
-        currentDate.getSeconds() * 1000 +            //202301311259|59 plus 3 zeros
-        currentDate.getMilliseconds()                    //milliseconds get added directly to the sum
+        currentDate.getFullYear() * 10000000000000 +   //2023 plus 13 zeros
+        (currentDate.getMonth() + 1) * 100000000000 +  //2023|01 plus 11 zeros (remember that January is 0, not 1)
+        currentDate.getDate() * 1000000000 +           //202301|31 plus 9 zeros
+        currentDate.getHours() * 10000000 +            //20230131|12 plus 7 zeros
+        currentDate.getMinutes() * 100000 +            //2023013112|59 plus 5 zeros
+        currentDate.getSeconds() * 1000 +              //202301311259|59 plus 3 zeros
+        currentDate.getMilliseconds()                  //milliseconds get added directly to the sum
     )
 }
